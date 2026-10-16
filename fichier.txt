@@ -1,4 +1,4 @@
 ligne 1
-ligne 2
+ligne 2 (version main)
 ligne 3
 ligne 4 (feature-a)
