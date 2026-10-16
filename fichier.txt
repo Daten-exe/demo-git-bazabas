@@ -1,4 +1,4 @@
 ligne 1
-ligne 2 (version main)
+ligne 2 (main + feature-c : fusion des deux versions)
 ligne 3
 ligne 4 (feature-a)
