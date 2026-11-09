@@ -124,3 +124,83 @@ Différence avec l'étape 7 : `git pull` = `git fetch` **+** `git merge origin/m
 avait donc aussi avancé `main` et mis à jour mes fichiers. `git fetch` seul ne touche jamais à mes
 branches ni à mes fichiers : il met seulement à jour la photo de GitHub. Pour rattraper le retard :
 `git merge origin/main` (ou `git pull`).
+
+# Approfondissement — Republier sans écraser un collègue
+
+## Étapes 9-10
+
+Poste A : `tp-05-github/demo-git-A`. Poste B : `tp-05-github/demo-git-B`, créé avec
+`git clone https://github.com/Daten-exe/demo-git-bazabas.git demo-git-B`.
+
+- A : ligne ajoutée au README, commit **X** = `d8e4244 wip truc`, poussé (`d670a7a..d8e4244  main -> main`).
+- B : `git pull` → `Fast-forward` sur `d8e4244`. A et B ont maintenant tous les deux X.
+
+## Étape 11 — `--amend` puis `git push`
+
+X amendé en **X'** = `01c8bc3 Ajoute une ligne de présentation au README`. Message de rejet, verbatim :
+
+```
+To https://github.com/Daten-exe/demo-git-bazabas.git
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/Daten-exe/demo-git-bazabas.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+```
+
+`--amend` ne modifie pas X : il crée un nouveau commit X' qui le remplace sur ma branche. X' n'a pas
+X pour ancêtre, donc publier X' retirerait X de GitHub. Ce n'est pas une avance rapide, alors GitHub refuse.
+
+**Réponse réelle de Git, verbatim :**
+
+```
+To https://github.com/Daten-exe/demo-git-bazabas.git
+ ! [rejected]        main -> main (stale info)
+error: failed to push some refs to 'https://github.com/Daten-exe/demo-git-bazabas.git'
+```
+
+Prédiction confirmée : refus, et B1 n'a pas été effacé. Un `git push --force` simple ne vérifie rien :
+il aurait remplacé X et B1 par X' sans prévenir.
+
+## Étape 14 — Après `git fetch`
+
+```
+$ git fetch
+$ git log --oneline --graph --all
+* dd58a39 (origin/main, origin/HEAD) Ajoute NOTES.md (poste B)
+* d8e4244 wip truc
+| * 01c8bc3 (HEAD -> main) Ajoute une ligne de présentation au README
+|/
+* d670a7a Journal : étapes 3 à 8
+```
+
+Si je relançais maintenant `git push --force-with-lease`, **B1 serait effacé de GitHub**, avec X,
+et remplacé par X'. En effet, le `fetch` a renouvelé le bail : `origin/main` vaut désormais `dd58a39`,
+exactement comme GitHub, donc la vérification passe, alors que je n'ai jamais intégré B1 à ma branche.
+`--force-with-lease` protège de ce que je n'ai *pas vu*, pas de ce que j'ai vu sans l'intégrer.
+
+## Étape 15 — `git rebase origin/main`
+
+```
+$ git stash
+$ git rebase origin/main
+warning: skipped previously applied commit 01c8bc3
+hint: use --reapply-cherry-picks to include skipped commits
+hint: Disable this message with "git config set advice.skippedCherryPicks false"
+Successfully rebased and updated refs/heads/main.
+$ git stash pop
+$ git push
+Everything up-to-date
+```
+
+Git a **sauté X'** (`01c8bc3`). Un rebase rejoue les *modifications de contenu* de mes commits
+par-dessus `origin/main`. Or X' apporte exactement le même diff que X, qui est déjà dans `origin/main`.
+Seul le message diffère, et un message n'est pas une modification de contenu. Git considère donc X'
+comme « déjà appliqué » et l'abandonne. Ma `main` revient sur B1, le `push` n'a rien à envoyer, et
+l'historique publié garde le message `wip truc`.
+
+La correction devait se faire **avant le premier `git push` de X**. Tant qu'un commit est seulement
+local, `--amend` ne gêne personne. Une fois publié et récupéré par d'autres (ici B), réécrire son
+message oblige à réécrire l'historique partagé. Après publication, on garde le message, ou on
+l'explique dans un commit suivant.
