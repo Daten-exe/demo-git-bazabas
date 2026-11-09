@@ -204,3 +204,28 @@ La correction devait se faire **avant le premier `git push` de X**. Tant qu'un c
 local, `--amend` ne gêne personne. Une fois publié et récupéré par d'autres (ici B), réécrire son
 message oblige à réécrire l'historique partagé. Après publication, on garde le message, ou on
 l'explique dans un commit suivant.
+
+# Issues et traçabilité
+
+## Étapes 16-17
+
+- Milestone **« TP 05 »** créé.
+- Issue **#2** « Documenter la liaison avec GitHub dans le README », description de deux lignes,
+  label `documentation`, milestone « TP 05 » :
+  https://github.com/Daten-exe/demo-git-bazabas/issues/2
+- Commit `928bdb5 Référence le ticket de documentation (Closes #2)`, poussé sur `main`. L'Issue est
+  passée à l'état fermé toute seule, et son fil affiche « closed this as completed in 928bdb5 ».
+
+Incident : j'ai d'abord créé par erreur une Issue nommée « TP 05 » (la #1, vide, sans label), en
+voulant créer le milestone. Mon premier commit `146b50a ... (Closes #1)` a donc fermé cette mauvaise
+Issue. J'ai corrigé avec un second commit qui référence le bon numéro, `Closes #2`.
+
+## Étape 18 — Intérêt pour une revue trois mois plus tard
+
+Le lien entre commit et Issue relie le **pourquoi** au **quoi**. Depuis le commit, on remonte à
+l'Issue : le besoin, la discussion, le label, le milestone. Depuis l'Issue, on trouve le commit exact
+qui l'a traitée, avec son diff. Trois mois plus tard, personne ne se souvient de la raison d'une
+ligne : `git log` ou `git blame` mène au commit, et `#2` mène au contexte. Sans ce lien, il faudrait
+deviner. Ça permet aussi de vérifier qu'un ticket a été fermé par du code, et pas à la main. Mon
+erreur de numéro le montre : la trace est visible et datée dans les deux sens, donc l'erreur se
+repère et se corrige facilement.
