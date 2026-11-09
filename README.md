@@ -8,3 +8,4 @@ Ligne ajoutée par A.
 
 - origin : https://github.com/Daten-exe/demo-git-bazabas.git
 - main suit origin/main
+- Ticket de suivi : #2
